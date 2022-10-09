@@ -1,0 +1,20 @@
+ <GroupBox Grid.Row="1" Header="Destination Options" Margin="1,1,1,1">
+                <StackPanel Orientation="Vertical">
+
+                    <StackPanel Orientation="Horizontal" Margin="2,2,2,2">
+                        <Label Margin="2,2,2,2">Last Name</Label>
+                        <TextBox Text="{Binding LastName}" Width="200" Margin="2,2,2,2"/>
+                        <Label Margin="2,2,2,2">First Name</Label>
+                        <TextBox Text="{Binding FirstName}" Width="200" Margin="2,2,2,2"/>
+                        <Label Margin="2,2,2,2">Date Taken</Label>
+                        <TextBox Text="{Binding DateTaken}" Width="200" Margin="2,2,2,2"/>
+                        <Label Margin="2,2,2,2">Time Point</Label>
+                        <TextBox Text="{Binding TimePoint}" Width="200" Margin="2,2,2,2"/>
+                        <Button>Execute Transfer</Button>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="2,2,2,2">
+                     
+                    </StackPanel>
+                </StackPanel>
+
+            </GroupBox>

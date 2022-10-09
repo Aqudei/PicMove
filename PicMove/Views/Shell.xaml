@@ -1,0 +1,119 @@
+﻿<mah:MetroWindow x:Class="PicMove.Views.Shell"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:prism="http://prismlibrary.com/"
+        xmlns:local="clr-namespace:PicMove.Views"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        prism:ViewModelLocator.AutoWireViewModel="True"
+        mc:Ignorable="d"
+        Title="yossi bar-zion" Height="1000" Width="1000" WindowState="Maximized">
+
+    <Grid Margin="10">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Grid ColumnSpan="2" >
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <GroupBox Header="Options" Margin="1,1,1,1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Margin="2" 
+                                 Text="{Binding SelectedFolder}" mah:TextBoxHelper.Watermark="Source Folder"/>
+                        <Button Margin="2"
+                                Command="{Binding SelectFolderCommand}"
+                                Content="Select Folder" Grid.Column="1"/>
+                    </Grid>
+
+                    <Grid Grid.Row="0" 
+                          Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Margin="20,2,2,2" 
+                                 Text="{Binding DestinationFolder}" mah:TextBoxHelper.Watermark="Destination Folder"/>
+                        <Button Margin="2"
+                                Command="{Binding SelectDestinationFolderCommand}"
+                                Content="Select Folder" Grid.Column="1"/>
+                    </Grid>
+
+                    <StackPanel Grid.Row="1" 
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                Orientation="Horizontal">
+                        <TextBox mah:TextBoxHelper.Watermark="Last Name" Text="{Binding LastName}" Width="200" Margin="2,2,2,2"/>
+                        <TextBox mah:TextBoxHelper.Watermark="First Name" Text="{Binding FirstName}" Width="200" Margin="2,2,2,2"/>
+                        <DatePicker  mah:TextBoxHelper.Watermark="Date Taken" SelectedDate="{Binding DateTaken}" Width="200" Margin="2,2,2,2"/>
+                        <TextBox mah:TextBoxHelper.Watermark="Time Point"  Text="{Binding TimePoint}" Width="200" Margin="2,2,2,2"/>
+                        <Button Command="{Binding ExecuteTransferCommand}" 
+                                Margin="20,2,2,2">Execute Transfer</Button>
+
+                    </StackPanel>
+                </Grid>
+
+            </GroupBox>
+        </Grid>
+
+        <DataGrid Grid.Row="1" 
+                  Grid.Column="0"
+                  Margin="2"
+                  ItemsSource="{Binding ImageListView}" 
+                  IsSynchronizedWithCurrentItem="True" 
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <!--<DataGridCheckBoxColumn Header="Selected" Binding="{Binding Selected}"/>-->
+                <DataGridTemplateColumn Header="Selected">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox HorizontalAlignment="Center" 
+                                      IsChecked="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="FileName" Binding="{Binding FileName}"/>
+                <DataGridTextColumn Header="Date Created" Binding="{Binding DateCreated}"/>
+                <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <GroupBox Grid.Row="1"      
+                  Grid.Column="1" 
+                  Header="Preview"
+                  Margin="5">
+
+            <Border 
+                BorderThickness="2"
+                BorderBrush="Black" >
+                <Image 
+                    Margin="10"
+                    Source="{Binding CurrentImage}"/>
+            </Border>
+        </GroupBox>
+    </Grid>
+</mah:MetroWindow>
