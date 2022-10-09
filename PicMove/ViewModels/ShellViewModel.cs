@@ -37,7 +37,7 @@ namespace PicMove.ViewModels
         private string _lastName;
         private string _firstName;
         private DateTime? _dateTaken;
-        private string _timePoint;
+        private DateTime? _timePoint;
 
         public string CurrentImage
         {
@@ -63,7 +63,7 @@ namespace PicMove.ViewModels
             set => SetProperty(ref _dateTaken, value);
         }
 
-        public string TimePoint
+        public DateTime? TimePoint
         {
             get => _timePoint;
             set => SetProperty(ref _timePoint, value);
@@ -91,6 +91,22 @@ namespace PicMove.ViewModels
 
         private void ExecuteTransfer()
         {
+            var datePart = DateTaken?.ToShortDateString().Replace("/", "-");
+            var timePart = TimePoint?.ToString("t")
+                .Replace(":", "-")
+                .Replace(" ", "")
+                .ToUpper();
+
+            var folderName = $"{LastName}_{FirstName}_{datePart}_{timePart}";
+            var destination = Path.Combine(DestinationFolder, folderName);
+            if (!Directory.Exists(destination))
+                Directory.CreateDirectory(destination);
+
+            foreach (var picInfo in _images.Where(s => s.Selected))
+            {
+                var finalName = Path.Combine(destination, Path.GetFileName(picInfo.FileName));
+                File.Copy(picInfo.FileName, finalName);
+            }
         }
 
         public ShellViewModel()

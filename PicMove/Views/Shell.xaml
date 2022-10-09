@@ -69,7 +69,7 @@
                         <TextBox mah:TextBoxHelper.Watermark="Last Name" Text="{Binding LastName}" Width="200" Margin="2,2,2,2"/>
                         <TextBox mah:TextBoxHelper.Watermark="First Name" Text="{Binding FirstName}" Width="200" Margin="2,2,2,2"/>
                         <DatePicker  mah:TextBoxHelper.Watermark="Date Taken" SelectedDate="{Binding DateTaken}" Width="200" Margin="2,2,2,2"/>
-                        <TextBox mah:TextBoxHelper.Watermark="Time Point"  Text="{Binding TimePoint}" Width="200" Margin="2,2,2,2"/>
+                        <mah:TimePicker mah:TextBoxHelper.Watermark="Time Point"  SelectedDateTime="{Binding TimePoint}" Width="200" Margin="2,2,2,2"/>
                         <Button Command="{Binding ExecuteTransferCommand}" 
                                 Margin="20,2,2,2">Execute Transfer</Button>
 
