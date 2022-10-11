@@ -6,6 +6,7 @@
         xmlns:prism="http://prismlibrary.com/"
         xmlns:local="clr-namespace:PicMove.Views"
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        mah:DialogParticipation.Register="{Binding }"
         prism:ViewModelLocator.AutoWireViewModel="True"
         mc:Ignorable="d"
         Title="yossi bar-zion" Height="1000" Width="1000" WindowState="Maximized">
@@ -37,41 +38,90 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
+
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Margin="2" 
-                                 Text="{Binding SelectedFolder}" mah:TextBoxHelper.Watermark="Source Folder"/>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Label>Source Folder</Label>
+                            <TextBox Margin="2" 
+                                 Text="{Binding SelectedFolder}" mah:TextBoxHelper.Watermark="Source Folder" Grid.Row="1"/>
+                        </Grid>
                         <Button Margin="2"
+                                VerticalAlignment="Bottom"
                                 Command="{Binding SelectFolderCommand}"
-                                Content="Select Folder" Grid.Column="1"/>
+                                Content="Select Folder" Grid.Column="1" Width="120"/>
                     </Grid>
 
                     <Grid Grid.Row="0" 
-                          Grid.Column="1">
+                          Grid.Column="1" Margin="20,0,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Margin="20,2,2,2" 
-                                 Text="{Binding DestinationFolder}" mah:TextBoxHelper.Watermark="Destination Folder"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Label>Destination Folder</Label>
+                            <TextBox Grid.Row="1" Margin="2" 
+                                     Text="{Binding DestinationFolder}" mah:TextBoxHelper.Watermark="Destination Folder"/>
+                        </Grid>
+
                         <Button Margin="2"
+                                VerticalAlignment="Bottom"
                                 Command="{Binding SelectDestinationFolderCommand}"
-                                Content="Select Folder" Grid.Column="1"/>
+                                Content="Select Folder" Grid.Column="1" Width="120"/>
                     </Grid>
 
                     <StackPanel Grid.Row="1" 
+                                Margin="0,10,0,0"
                                 Grid.Column="0"
                                 Grid.ColumnSpan="2"
                                 Orientation="Horizontal">
-                        <TextBox mah:TextBoxHelper.Watermark="Last Name" Text="{Binding LastName}" Width="200" Margin="2,2,2,2"/>
-                        <TextBox mah:TextBoxHelper.Watermark="First Name" Text="{Binding FirstName}" Width="200" Margin="2,2,2,2"/>
-                        <DatePicker  mah:TextBoxHelper.Watermark="Date Taken" SelectedDate="{Binding DateTaken}" Width="200" Margin="2,2,2,2"/>
-                        <mah:TimePicker mah:TextBoxHelper.Watermark="Time Point"  SelectedDateTime="{Binding TimePoint}" Width="200" Margin="2,2,2,2"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Label>Last Name</Label>
+                            <TextBox mah:TextBoxHelper.Watermark="Last Name" Text="{Binding LastName}" Width="200" Margin="2,2,2,2" Grid.Row="2"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Label>First Name</Label>
+                            <TextBox mah:TextBoxHelper.Watermark="First Name" Text="{Binding FirstName}" Width="200" Margin="2,2,2,2" Grid.Row="1"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Label>Date Taken</Label>
+                            <DatePicker  mah:TextBoxHelper.Watermark="Date Taken" SelectedDate="{Binding DateTaken}" Width="200" Margin="2" Grid.Row="1"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Label>Time Point</Label>
+                            <TextBox mah:TextBoxHelper.Watermark="Time Point" Text="{Binding TimePoint}" Width="200" Margin="2,2,2,2" Grid.Row="1"/>
+                        </Grid>
                         <Button Command="{Binding ExecuteTransferCommand}" 
-                                Margin="20,2,2,2">Execute Transfer</Button>
+                                VerticalAlignment="Bottom"
+                                Margin="20,2,2,2" Content="Execute Transfer" Width="120"/>
 
                     </StackPanel>
                 </Grid>
@@ -79,28 +129,56 @@
             </GroupBox>
         </Grid>
 
-        <DataGrid Grid.Row="1" 
-                  Grid.Column="0"
-                  Margin="2"
-                  ItemsSource="{Binding ImageListView}" 
-                  IsSynchronizedWithCurrentItem="True" 
-                  AutoGenerateColumns="False"
-                  CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True">
-            <DataGrid.Columns>
-                <!--<DataGridCheckBoxColumn Header="Selected" Binding="{Binding Selected}"/>-->
-                <DataGridTemplateColumn Header="Selected">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <CheckBox HorizontalAlignment="Center" 
-                                      IsChecked="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="FileName" Binding="{Binding FileName}"/>
-                <DataGridTextColumn Header="Date Created" Binding="{Binding DateCreated}"/>
-                <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified}"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Grid Grid.Column="0" 
+              Margin="2" 
+              Grid.Row="1">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <Button Command="{Binding CheckAllCommand}" Content="Check All" Width="100"/>
+                    <Button Command="{Binding UncheckAllCommand}" Content="Uncheck All" Width="100"/>
+                    <Label Margin="20,0,0,0">Total Files</Label>
+                    <Label Content="{Binding Count}"/>
+                </StackPanel>
+                
+                <DataGrid 
+                    ItemsSource="{Binding ImageListView}" 
+                    IsSynchronizedWithCurrentItem="True" 
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False" 
+                    CanUserDeleteRows="False" 
+                    IsReadOnly="True" Grid.Row="1">
+                    <DataGrid.Columns>
+                        <!--<DataGridCheckBoxColumn Header="Selected" Binding="{Binding Selected}"/>-->
+                        <DataGridTemplateColumn Header="Selected">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox HorizontalAlignment="Center" 
+                                              IsChecked="{Binding Selected, UpdateSourceTrigger=PropertyChanged}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Thumb">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Image Width="100" 
+                                           Height="100"
+                                           Source="{Binding Thumbnail}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="FileName" Binding="{Binding FileName}"/>
+                        <DataGridTextColumn Header="Date Created" Binding="{Binding DateCreated}"/>
+                        <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified}"/>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Grid>
 
         <GroupBox Grid.Row="1"      
                   Grid.Column="1" 

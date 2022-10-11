@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using MahApps.Metro.Controls.Dialogs;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using PicMove.Models;
 using Prism.Commands;
@@ -19,6 +20,7 @@ namespace PicMove.ViewModels
 {
     public class ShellViewModel : BindableBase
     {
+        private readonly IDialogCoordinator _dialogCoordinator;
         private string _selectedFolder;
 
         public string DestinationFolder
@@ -36,8 +38,8 @@ namespace PicMove.ViewModels
         private string _currentImage;
         private string _lastName;
         private string _firstName;
-        private DateTime? _dateTaken;
-        private DateTime? _timePoint;
+        private DateTime? _dateTaken = DateTime.Now;
+        private string _timePoint;
 
         public string CurrentImage
         {
@@ -63,7 +65,7 @@ namespace PicMove.ViewModels
             set => SetProperty(ref _dateTaken, value);
         }
 
-        public DateTime? TimePoint
+        public string TimePoint
         {
             get => _timePoint;
             set => SetProperty(ref _timePoint, value);
@@ -71,6 +73,9 @@ namespace PicMove.ViewModels
         private DelegateCommand _executeTransferCommand;
         private DelegateCommand _selectDestinationFolderCommand;
         private string _destinationFolder;
+        private int _count;
+        private DelegateCommand _checkAllCommand;
+        private DelegateCommand _uncheckAllCommand;
 
         public DelegateCommand ExecuteTransferCommand =>
             _executeTransferCommand ??= new DelegateCommand(ExecuteTransfer);
@@ -89,39 +94,100 @@ namespace PicMove.ViewModels
             DestinationFolder = ofd.FileName;
         }
 
-        private void ExecuteTransfer()
+        private async void ExecuteTransfer()
         {
-            var datePart = DateTaken?.ToShortDateString().Replace("/", "-");
-            var timePart = TimePoint?.ToString("t")
-                .Replace(":", "-")
-                .Replace(" ", "")
-                .ToUpper();
+            if (string.IsNullOrWhiteSpace(DestinationFolder) || string.IsNullOrWhiteSpace(LastName)
+                || string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(TimePoint) || DateTaken == null)
+            {
+                await _dialogCoordinator.ShowMessageAsync(this, "Error - Missing Info", "Please complete destination info to proceed!");
+                return;
+            }
+            var progress = await _dialogCoordinator.ShowProgressAsync(this, "Please wait", "Copying files");
+            progress.SetIndeterminate();
 
-            var folderName = $"{LastName}_{FirstName}_{datePart}_{timePart}";
+            var datePart = DateTaken?.ToShortDateString().Replace("/", "-");
+
+            var folderName = $"{LastName}_{FirstName}_{datePart}_{TimePoint}";
             var destination = Path.Combine(DestinationFolder, folderName);
             if (!Directory.Exists(destination))
                 Directory.CreateDirectory(destination);
 
             foreach (var picInfo in _images.Where(s => s.Selected))
             {
-                var finalName = Path.Combine(destination, Path.GetFileName(picInfo.FileName));
-                File.Copy(picInfo.FileName, finalName);
+                var finalName = Path.Combine(destination, picInfo.FileName);
+                File.Copy(picInfo.FullPath, finalName);
+            }
+
+            CreateDesktopShortcut(destination);
+
+            await progress.CloseAsync();
+
+            var response = await _dialogCoordinator.ShowMessageAsync(this, "Confirm Delete",
+                "Do you want to delete files from source folder?", MessageDialogStyle.AffirmativeAndNegative);
+            if (response == MessageDialogResult.Affirmative)
+            {
+                foreach (var picInfo in _images.Where(s => s.Selected))
+                {
+                    File.Delete(picInfo.FullPath);
+                    _images.Remove(picInfo);
+                }
             }
         }
 
-        public ShellViewModel()
+        private static void CreateDesktopShortcut(string destination)
         {
+            var shortcut = new WindowsShortcutFactory.WindowsShortcut();
+            shortcut.Path = destination;
+            var scPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), Path.GetFileName(destination) + ".lnk");
+            shortcut.Save(scPath);
+        }
+
+        public ShellViewModel(IDialogCoordinator dialogCoordinator)
+        {
+            _dialogCoordinator = dialogCoordinator;
             ImageListView = CollectionViewSource.GetDefaultView(_images);
             ImageListView.CurrentChanged += ImageListView_CurrentChanged;
+            ImageListView.CollectionChanged += ImageListView_CollectionChanged;
+        }
+
+        private void ImageListView_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            Count = _images.Count;
+        }
+
+
+
+        public DelegateCommand CheckAllCommand => _checkAllCommand ??= new DelegateCommand(CheckAll);
+        public DelegateCommand UncheckAllCommand => _uncheckAllCommand ??= new DelegateCommand(UncheckAll);
+
+        private void UncheckAll()
+        {
+            foreach (var img in _images)
+            {
+                img.Selected = false;
+            }
+        }
+
+        private void CheckAll()
+        {
+            foreach (var img in _images)
+            {
+                img.Selected = true;
+            }
+        }
+
+        public int Count
+        {
+            get => _count;
+            set => SetProperty(ref _count, value);
         }
 
         private void ImageListView_CurrentChanged(object sender, EventArgs e)
         {
-            if (ImageListView.CurrentItem != null)
-            {
-                var source = ImageListView.CurrentItem as PicInfo;
-                CurrentImage = source.FileName;
-            }
+            if (ImageListView.CurrentItem == null) return;
+
+            var source = ImageListView.CurrentItem as PicInfo;
+            CurrentImage = source?.FullPath;
         }
 
         public ICollectionView ImageListView
@@ -155,15 +221,26 @@ namespace PicMove.ViewModels
 
         private void LoadImages()
         {
+
             var files = Directory.EnumerateFiles(SelectedFolder, "*.jp*g");
             foreach (var file in files)
             {
+                var thumb = new BitmapImage();
+                thumb.BeginInit();
+
+                thumb.UriSource = new Uri(file);
+                thumb.DecodePixelHeight = 100;
+                thumb.DecodePixelWidth = 100;
+                thumb.EndInit();
+
                 var fileInfo = new FileInfo(file);
                 _images.Add(new PicInfo
                 {
                     DateCreated = fileInfo.CreationTime,
                     DateModified = fileInfo.LastWriteTime,
-                    FileName = fileInfo.FullName
+                    FullPath = fileInfo.FullName,
+                    FileName = fileInfo.Name,
+                    Thumbnail = thumb
                 });
             }
         }

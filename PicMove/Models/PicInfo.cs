@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using Prism.Mvvm;
 
 namespace PicMove.Models
@@ -13,6 +14,8 @@ namespace PicMove.Models
         public string FileName { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateModified { get; set; }
+        public string FullPath { get; set; }
+        public BitmapSource Thumbnail { get; set; }
 
         public bool Selected
         {

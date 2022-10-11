@@ -18,3 +18,13 @@
                 </StackPanel>
 
             </GroupBox>
+
+
+1- time point is a text field (not time, but rather: initial, progress, final, etc...)
+2- if no 'last name', 'first name', 'date taken', or 'time point' are selected, the program crushes and closes - please make sure that it only allow to 'execute transfer' once all this fields are populated - they are all mandatory fields
+3- please have the dialog boxes name present above or below the box - for example, i want to know that the last name box is the last name box even when the name is populated; same for the source and destination folder. it will be less confusing for the user when they have to do multiple sets.
+4- once 'execute transfer', a dialog box need to pop and detail: "# of files successfully transferred - Do you want to deleted the selected source files now?" then yes will delete the selected files from the source location and from the files listed in the software
+5- it possible to have a thumb nail of the image next to the 'file name' in the browsing window
+6- i noticed that the today's date on the 'date taken' dialog box is not the correct today's date -> just an observation
+7- in the browsing window, can you just list the file name without the path (all the files are in the same source folder and path detailed above; this will save space and look cleaner
+8- once ' execute transfer' is selected, the dialog box to allow to delete the transferred files pops up and once selected, a shortcut need to be placed in a folder on the desktop - the shortcut is the the folder that was just created with the files there were just transferred

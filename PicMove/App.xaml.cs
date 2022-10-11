@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using MahApps.Metro.Controls.Dialogs;
 using PicMove.Views;
 using Prism.Ioc;
 using Prism.Unity;
@@ -19,7 +20,7 @@ namespace PicMove
     {
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-
+            containerRegistry.RegisterInstance(DialogCoordinator.Instance);
         }
 
         protected override Window CreateShell()
