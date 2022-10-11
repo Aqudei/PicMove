@@ -35,13 +35,13 @@ namespace PicMove.ViewModels
         private ICollectionView _imageListView;
 
 
-        private string _currentImage;
+        private BitmapSource _currentImage;
         private string _lastName;
         private string _firstName;
         private DateTime? _dateTaken = DateTime.Now;
         private string _timePoint;
 
-        public string CurrentImage
+        public BitmapSource CurrentImage
         {
             get => _currentImage;
             set => SetProperty(ref _currentImage, value);
@@ -96,6 +96,8 @@ namespace PicMove.ViewModels
 
         private async void ExecuteTransfer()
         {
+            CurrentImage = null;
+
             if (string.IsNullOrWhiteSpace(DestinationFolder) || string.IsNullOrWhiteSpace(LastName)
                 || string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(TimePoint) || DateTaken == null)
             {
@@ -115,7 +117,7 @@ namespace PicMove.ViewModels
             foreach (var picInfo in _images.Where(s => s.Selected))
             {
                 var finalName = Path.Combine(destination, picInfo.FileName);
-                File.Copy(picInfo.FullPath, finalName);
+                File.Copy(picInfo.FullPath, finalName,true);
             }
 
             CreateDesktopShortcut(destination);
@@ -126,11 +128,21 @@ namespace PicMove.ViewModels
                 "Do you want to delete files from source folder?", MessageDialogStyle.AffirmativeAndNegative);
             if (response == MessageDialogResult.Affirmative)
             {
-                foreach (var picInfo in _images.Where(s => s.Selected))
+                
+                var deleteUs = new List<string>();
+                var picInfos = _images.Where(s => s.Selected).ToArray();
+                foreach (var picInfo in picInfos)
                 {
-                    File.Delete(picInfo.FullPath);
                     _images.Remove(picInfo);
+                    deleteUs.Add(picInfo.FullPath);
+                    picInfo.FullPath = null;
+                    picInfo.Thumbnail = null;
                 }
+                foreach (var pic in deleteUs)
+                {
+                    File.Delete(pic);
+                }
+
             }
         }
 
@@ -187,7 +199,7 @@ namespace PicMove.ViewModels
             if (ImageListView.CurrentItem == null) return;
 
             var source = ImageListView.CurrentItem as PicInfo;
-            CurrentImage = source?.FullPath;
+            CurrentImage = source?.Preview;
         }
 
         public ICollectionView ImageListView
@@ -231,8 +243,15 @@ namespace PicMove.ViewModels
                 thumb.UriSource = new Uri(file);
                 thumb.DecodePixelHeight = 100;
                 thumb.DecodePixelWidth = 100;
+                thumb.CacheOption = BitmapCacheOption.OnLoad;
                 thumb.EndInit();
 
+                var preview = new BitmapImage();
+                preview.BeginInit();
+                preview.UriSource = new Uri(file);
+                preview.CacheOption = BitmapCacheOption.OnLoad;
+                preview.EndInit();
+                
                 var fileInfo = new FileInfo(file);
                 _images.Add(new PicInfo
                 {
@@ -240,7 +259,8 @@ namespace PicMove.ViewModels
                     DateModified = fileInfo.LastWriteTime,
                     FullPath = fileInfo.FullName,
                     FileName = fileInfo.Name,
-                    Thumbnail = thumb
+                    Thumbnail = thumb,
+                    Preview = preview
                 });
             }
         }

@@ -11,6 +11,7 @@ namespace PicMove.Models
     public class PicInfo : BindableBase
     {
         private bool _selected;
+        private BitmapSource _preview;
         public string FileName { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateModified { get; set; }
@@ -21,6 +22,12 @@ namespace PicMove.Models
         {
             get => _selected;
             set => SetProperty(ref _selected, value);
+        }
+
+        public BitmapSource Preview
+        {
+            get => _preview;
+            set => SetProperty(ref _preview, value);
         }
     }
 }
