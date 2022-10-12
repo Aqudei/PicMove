@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -22,6 +23,13 @@ namespace PicMove.ViewModels
     {
         private readonly IDialogCoordinator _dialogCoordinator;
         private string _selectedFolder;
+        private const string FolderInDesktop = "Need to be imported to Dolphin";
+
+        public int SelectedCount
+        {
+            get => _selectedCount;
+            set => SetProperty(ref _selectedCount, value);
+        }
 
         public string DestinationFolder
         {
@@ -76,9 +84,12 @@ namespace PicMove.ViewModels
         private int _count;
         private DelegateCommand _checkAllCommand;
         private DelegateCommand _uncheckAllCommand;
+        private int _selectedCount;
 
         public DelegateCommand ExecuteTransferCommand =>
             _executeTransferCommand ??= new DelegateCommand(ExecuteTransfer);
+
+        private async void ExecuteTransfer() => await Task.Run(DoExecuteTransferAsync);
 
         public DelegateCommand SelectDestinationFolderCommand => _selectDestinationFolderCommand ??= new DelegateCommand(SelectDestination);
 
@@ -94,7 +105,7 @@ namespace PicMove.ViewModels
             DestinationFolder = ofd.FileName;
         }
 
-        private async void ExecuteTransfer()
+        private async Task DoExecuteTransferAsync()
         {
             CurrentImage = null;
 
@@ -104,6 +115,7 @@ namespace PicMove.ViewModels
                 await _dialogCoordinator.ShowMessageAsync(this, "Error - Missing Info", "Please complete destination info to proceed!");
                 return;
             }
+
             var progress = await _dialogCoordinator.ShowProgressAsync(this, "Please wait", "Copying files");
             progress.SetIndeterminate();
 
@@ -117,7 +129,7 @@ namespace PicMove.ViewModels
             foreach (var picInfo in _images.Where(s => s.Selected))
             {
                 var finalName = Path.Combine(destination, picInfo.FileName);
-                File.Copy(picInfo.FullPath, finalName,true);
+                File.Copy(picInfo.FullPath, finalName, true);
             }
 
             CreateDesktopShortcut(destination);
@@ -128,9 +140,10 @@ namespace PicMove.ViewModels
                 "Do you want to delete files from source folder?", MessageDialogStyle.AffirmativeAndNegative);
             if (response == MessageDialogResult.Affirmative)
             {
-                
+
                 var deleteUs = new List<string>();
                 var picInfos = _images.Where(s => s.Selected).ToArray();
+
                 foreach (var picInfo in picInfos)
                 {
                     _images.Remove(picInfo);
@@ -138,19 +151,36 @@ namespace PicMove.ViewModels
                     picInfo.FullPath = null;
                     picInfo.Thumbnail = null;
                 }
+
                 foreach (var pic in deleteUs)
                 {
                     File.Delete(pic);
                 }
-
             }
+        }
+
+        private void SaveSettings()
+        {
+            Properties.Settings.Default.DestinationFolder = DestinationFolder;
+            Properties.Settings.Default.SourceFolder = SelectedFolder;
+            Properties.Settings.Default.Save();
+        }
+
+        private void LoadSettings()
+        {
+            SelectedFolder = Properties.Settings.Default.SourceFolder;
+            DestinationFolder = Properties.Settings.Default.DestinationFolder;
         }
 
         private static void CreateDesktopShortcut(string destination)
         {
             var shortcut = new WindowsShortcutFactory.WindowsShortcut();
             shortcut.Path = destination;
-            var scPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), Path.GetFileName(destination) + ".lnk");
+            var folderInDesktop = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), FolderInDesktop);
+            if (!Directory.Exists(folderInDesktop))
+                Directory.CreateDirectory(folderInDesktop);
+
+            var scPath = Path.Combine(folderInDesktop, Path.GetFileName(destination) + ".lnk");
             shortcut.Save(scPath);
         }
 
@@ -160,11 +190,27 @@ namespace PicMove.ViewModels
             ImageListView = CollectionViewSource.GetDefaultView(_images);
             ImageListView.CurrentChanged += ImageListView_CurrentChanged;
             ImageListView.CollectionChanged += ImageListView_CollectionChanged;
+
+            LoadSettings();
+
+            this.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(SelectedFolder) || e.PropertyName == nameof(DestinationFolder))
+                {
+                    SaveSettings();
+                }
+            };
+        }
+
+        private void PicInfo_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+
         }
 
         private void ImageListView_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             Count = _images.Count;
+            SelectedCount = _images.Count(p => p.Selected);
         }
 
 
@@ -216,7 +262,7 @@ namespace PicMove.ViewModels
 
         public DelegateCommand SelectFolderCommand => _selectedFolderCommand ??= new DelegateCommand(SelectFolder);
 
-        private void SelectFolder()
+        private async void SelectFolder()
         {
             var ofd = new CommonOpenFileDialog
             {
@@ -227,41 +273,61 @@ namespace PicMove.ViewModels
             if (dlg == CommonFileDialogResult.Ok)
             {
                 SelectedFolder = ofd.FileName;
-                LoadImages();
+                await Task.Run(LoadImagesAsync);
             }
         }
 
-        private void LoadImages()
+        private async Task LoadImagesAsync()
         {
+            var progress = await _dialogCoordinator.ShowProgressAsync(this, "Processing", "Loading images...");
+            progress.SetIndeterminate();
 
             var files = Directory.EnumerateFiles(SelectedFolder, "*.jp*g");
             foreach (var file in files)
             {
-                var thumb = new BitmapImage();
-                thumb.BeginInit();
-
-                thumb.UriSource = new Uri(file);
-                thumb.DecodePixelHeight = 100;
-                thumb.DecodePixelWidth = 100;
-                thumb.CacheOption = BitmapCacheOption.OnLoad;
-                thumb.EndInit();
-
-                var preview = new BitmapImage();
-                preview.BeginInit();
-                preview.UriSource = new Uri(file);
-                preview.CacheOption = BitmapCacheOption.OnLoad;
-                preview.EndInit();
-                
-                var fileInfo = new FileInfo(file);
-                _images.Add(new PicInfo
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    DateCreated = fileInfo.CreationTime,
-                    DateModified = fileInfo.LastWriteTime,
-                    FullPath = fileInfo.FullName,
-                    FileName = fileInfo.Name,
-                    Thumbnail = thumb,
-                    Preview = preview
+                    var fileInfo = new FileInfo(file);
+
+                    var thumb = new BitmapImage();
+                    thumb.BeginInit();
+
+                    thumb.UriSource = new Uri(file);
+                    thumb.DecodePixelHeight = 100;
+                    thumb.DecodePixelWidth = 100;
+                    thumb.CacheOption = BitmapCacheOption.OnLoad;
+                    thumb.EndInit();
+
+                    var preview = new BitmapImage();
+                    preview.BeginInit();
+                    preview.UriSource = new Uri(file);
+                    preview.CacheOption = BitmapCacheOption.OnLoad;
+                    preview.EndInit();
+
+                    var picInfo = new PicInfo
+                    {
+                        DateCreated = fileInfo.CreationTime,
+                        DateModified = fileInfo.LastWriteTime,
+                        FullPath = fileInfo.FullName,
+                        FileName = fileInfo.Name,
+                        Thumbnail = thumb,
+                        Preview = preview
+                    };
+                    picInfo.PropertyChanged += PicInfo_PropertyChanged1;
+                    _images.Add(picInfo);
                 });
+
+
+            }
+
+            await progress.CloseAsync();
+        }
+
+        private void PicInfo_PropertyChanged1(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName.Contains("Selected"))
+            {
+                SelectedCount = _images.Count(p => p.Selected);
             }
         }
     }

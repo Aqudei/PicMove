@@ -143,6 +143,8 @@
                     <Button Command="{Binding UncheckAllCommand}" Content="Uncheck All" Width="100"/>
                     <Label Margin="20,0,0,0">Total Files</Label>
                     <Label Content="{Binding Count}"/>
+                    <Label Margin="20,0,0,0">Selected Files</Label>
+                    <Label Content="{Binding SelectedCount}"/>
                 </StackPanel>
                 
                 <DataGrid 
