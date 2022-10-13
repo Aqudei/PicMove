@@ -146,7 +146,8 @@ namespace PicMove.ViewModels
 
                 foreach (var picInfo in picInfos)
                 {
-                    _images.Remove(picInfo);
+                    await Application.Current.Dispatcher.InvokeAsync(() => _images.Remove(picInfo));
+
                     deleteUs.Add(picInfo.FullPath);
                     picInfo.FullPath = null;
                     picInfo.Thumbnail = null;
@@ -193,7 +194,11 @@ namespace PicMove.ViewModels
 
             LoadSettings();
 
-            this.PropertyChanged += (s, e) =>
+
+            if (!string.IsNullOrWhiteSpace(SelectedFolder))
+                Application.Current.Dispatcher.BeginInvoke(() => Task.Run(LoadImagesAsync));
+
+            PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(SelectedFolder) || e.PropertyName == nameof(DestinationFolder))
                 {
