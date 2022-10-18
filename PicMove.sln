@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Notes.txt = Notes.txt
 	EndProjectSection
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "PicMoveSetup", "PicMoveSetup\PicMoveSetup.vdproj", "{9EB34EBA-9F5F-4ACD-9A71-82F9415C887B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,8 @@ Global
 		{A5079BA6-B273-4A5B-977C-930955117929}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5079BA6-B273-4A5B-977C-930955117929}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5079BA6-B273-4A5B-977C-930955117929}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EB34EBA-9F5F-4ACD-9A71-82F9415C887B}.Debug|Any CPU.ActiveCfg = Debug
+		{9EB34EBA-9F5F-4ACD-9A71-82F9415C887B}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -16,6 +16,8 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using PicMove.Models;
 using Prism.Commands;
 using Prism.Mvvm;
+using static System.Net.Mime.MediaTypeNames;
+using Application = System.Windows.Application;
 
 namespace PicMove.ViewModels
 {
@@ -40,6 +42,7 @@ namespace PicMove.ViewModels
         private DelegateCommand _selectedFolderCommand;
 
         private ObservableCollection<PicInfo> _images = new ObservableCollection<PicInfo>();
+        public ObservableCollection<PicInfo> SelectedItems { get; set; } = new ObservableCollection<PicInfo>();
         private ICollectionView _imageListView;
 
 
@@ -85,6 +88,8 @@ namespace PicMove.ViewModels
         private DelegateCommand _checkAllCommand;
         private DelegateCommand _uncheckAllCommand;
         private int _selectedCount;
+        private DelegateCommand<IList<object>> _checkSelectedCommand;
+        private DelegateCommand<IList<object>> _uncheckSelectedCommand;
 
         public DelegateCommand ExecuteTransferCommand =>
             _executeTransferCommand ??= new DelegateCommand(ExecuteTransfer);
@@ -104,6 +109,34 @@ namespace PicMove.ViewModels
             if (dlg != CommonFileDialogResult.Ok) return;
             DestinationFolder = ofd.FileName;
         }
+
+        public DelegateCommand<IList<object>> CheckSelectedCommand => _checkSelectedCommand ??= new DelegateCommand<IList<object>>(CheckSelected);
+
+        public DelegateCommand<IList<object>> UncheckSelectedCommand => _uncheckSelectedCommand ??= new DelegateCommand<IList<object>>(UncheckSelected);
+
+        private void UncheckSelected(IList<object> selectedItems)
+        {
+            foreach (var selectedItem in selectedItems)
+            {
+                if (selectedItem is PicInfo picInfo)
+                {
+                    picInfo.Selected = false;
+                }
+            }
+        }
+
+        private void CheckSelected(IList<object> selectedItems)
+        {
+            foreach (var selectedItem in selectedItems)
+            {
+                if (selectedItem is PicInfo picInfo)
+                {
+                    picInfo.Selected = true;
+                }
+            }
+        }
+
+
 
         private async Task DoExecuteTransferAsync()
         {
@@ -125,8 +158,9 @@ namespace PicMove.ViewModels
             var destination = Path.Combine(DestinationFolder, folderName);
             if (!Directory.Exists(destination))
                 Directory.CreateDirectory(destination);
+            var selected = _images.Where(s => s.Selected).ToArray();
 
-            foreach (var picInfo in _images.Where(s => s.Selected))
+            foreach (var picInfo in selected)
             {
                 var finalName = Path.Combine(destination, picInfo.FileName);
                 File.Copy(picInfo.FullPath, finalName, true);
@@ -141,14 +175,13 @@ namespace PicMove.ViewModels
             if (response == MessageDialogResult.Affirmative)
             {
 
-                var deleteUs = new List<string>();
                 var picInfos = _images.Where(s => s.Selected).ToArray();
+                var deleteUs = picInfos.Select(p=>p.FullPath).ToArray();
 
                 foreach (var picInfo in picInfos)
                 {
                     await Application.Current.Dispatcher.InvokeAsync(() => _images.Remove(picInfo));
 
-                    deleteUs.Add(picInfo.FullPath);
                     picInfo.FullPath = null;
                     picInfo.Thumbnail = null;
                 }
@@ -157,6 +190,8 @@ namespace PicMove.ViewModels
                 {
                     File.Delete(pic);
                 }
+
+                GC.Collect();
             }
         }
 
@@ -284,6 +319,11 @@ namespace PicMove.ViewModels
 
         private async Task LoadImagesAsync()
         {
+            await Application.Current.Dispatcher.InvokeAsync(_images.Clear);
+
+            if (!Directory.Exists(SelectedFolder))
+                return;
+
             var progress = await _dialogCoordinator.ShowProgressAsync(this, "Processing", "Loading images...");
             progress.SetIndeterminate();
 
@@ -302,12 +342,14 @@ namespace PicMove.ViewModels
                     thumb.DecodePixelWidth = 100;
                     thumb.CacheOption = BitmapCacheOption.OnLoad;
                     thumb.EndInit();
+                    thumb.Freeze();
 
                     var preview = new BitmapImage();
                     preview.BeginInit();
                     preview.UriSource = new Uri(file);
                     preview.CacheOption = BitmapCacheOption.OnLoad;
                     preview.EndInit();
+                    preview.Freeze();
 
                     var picInfo = new PicInfo
                     {

@@ -23,6 +23,25 @@ namespace PicMove.Views
         public Shell()
         {
             InitializeComponent();
+
+
+        }
+
+        private void RotateLeft_Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (Preview.RenderTransform is not RotateTransform rotate)
+                return;
+
+            rotate.Angle -= 90;
+        }
+
+
+        private void RotateRight_Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (Preview.RenderTransform is not RotateTransform rotate)
+                return;
+            
+            rotate.Angle += 90;
         }
     }
 }

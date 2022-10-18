@@ -139,21 +139,35 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <StackPanel Orientation="Horizontal">
-                    <Button Command="{Binding CheckAllCommand}" Content="Check All" Width="100"/>
-                    <Button Command="{Binding UncheckAllCommand}" Content="Uncheck All" Width="100"/>
+                    <!--<Button Command="{Binding CheckAllCommand}" Content="Check All" Width="120"/>
+                    <Button Command="{Binding UncheckAllCommand}" Content="Uncheck All" Width="120"/>-->
+                    <Button Command="{Binding CheckSelectedCommand}" 
+                            CommandParameter="{Binding SelectedItems, ElementName=PictureInfoDataGrid}"
+                            Content="Check Selected" Width="120" Margin="2,2,2,2"/>
+                    <Button Command="{Binding UncheckSelectedCommand}" 
+                            CommandParameter="{Binding SelectedItems, ElementName=PictureInfoDataGrid}"
+                            Content="Uncheck Selected" Width="120" Margin="2,2,2,2"/>
                     <Label Margin="20,0,0,0">Total Files</Label>
                     <Label Content="{Binding Count}"/>
                     <Label Margin="20,0,0,0">Selected Files</Label>
                     <Label Content="{Binding SelectedCount}"/>
                 </StackPanel>
-                
+
                 <DataGrid 
-                    ItemsSource="{Binding ImageListView}" 
+                    Name="PictureInfoDataGrid"
+                    ItemsSource="{Binding ImageListView}"
                     IsSynchronizedWithCurrentItem="True" 
                     AutoGenerateColumns="False"
                     CanUserAddRows="False" 
                     CanUserDeleteRows="False" 
                     IsReadOnly="True" Grid.Row="1">
+
+                    <DataGrid.ItemContainerStyle>
+                        <Style TargetType="{x:Type DataGridRow}">
+                            <Setter Property="IsSelected" Value="{Binding Mode=TwoWay, Path=IsSelected}"/>
+                        </Style>
+                    </DataGrid.ItemContainerStyle>
+
                     <DataGrid.Columns>
                         <!--<DataGridCheckBoxColumn Header="Selected" Binding="{Binding Selected}"/>-->
                         <DataGridTemplateColumn Header="Selected">
@@ -186,14 +200,32 @@
                   Grid.Column="1" 
                   Header="Preview"
                   Margin="5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Border 
+                    BorderThickness="2"
+                    BorderBrush="Black" >
+                    <Image Name="Preview"
+                           RenderTransformOrigin="0.5,0.5"
+                           Margin="10"
+                            Source="{Binding CurrentImage}">
 
-            <Border 
-                BorderThickness="2"
-                BorderBrush="Black" >
-                <Image 
-                    Margin="10"
-                    Source="{Binding CurrentImage}"/>
-            </Border>
+                        <Image.RenderTransform>
+                            <RotateTransform/>
+                        </Image.RenderTransform>
+                    </Image>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Grid.Row="1">
+                    <Button Click="RotateLeft_Button_Click">Rotate Left</Button>
+                    <Button Click="RotateRight_Button_Click">Rotate Right</Button>
+                </StackPanel>
+            </Grid>
+
+
         </GroupBox>
     </Grid>
 </mah:MetroWindow>
